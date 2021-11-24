@@ -17,10 +17,10 @@ const productSchema = new mongoose.Schema({
         default: null,
     },
     product_image: {
-        type: String,
+        type: Buffer,
         default: null,
     },
-    porduct_detail: {
+    product_detail: {
         type: String,
         default: null,
     },
@@ -43,9 +43,9 @@ function validate(Product) {
     const schema = {
         product_name: Joi.string().required(),
         product_price: Joi.number().required(),
-        product_image: Joi.string().required(),
+        // product_image: Joi.string().required(),
         product_type: Joi.string().required(),
-        porduct_detail: Joi.string().required()
+        product_detail: Joi.string().required()
     }
     return Joi.validate(Product, schema)
 }

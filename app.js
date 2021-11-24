@@ -2,14 +2,24 @@ const dotenv = require('dotenv')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const auth = require('./middleware/auth')
+const multer = require('multer')
 
 const express = require('express');
 dotenv.config();
 require('./config/database').connect();
-const User = require('./model/User')
+const { User, validation } = require('./model/User')
 const { Product, validate } = require('./model/Product');
 const { findOneAndUpdate } = require('./model/User');
 
+const image = multer({
+
+    fileFilter(req, file, cb) {
+        if (!file.originalname.match(/\.(jpg|png|JPG|PNG|JPEG|jpeg)$/)) {
+            return cb(new Error('this is not a correct format of the file'))
+        }
+        cb(undefined, true);
+    }
+})
 const app = express();
 app.use(express.json())
 
@@ -18,42 +28,47 @@ app.post('/register', async (req, res) => {
     try {
 
         const { first_name, last_name, email, password } = req.body;
+        const { error } = validation(req.body)
+        if (error) {
 
-        if (!(email && password && first_name && last_name)) {
-            res.status(400).send('all input in  required ');
+            res.status(500).send(error.details[0].message)
         }
+        else {
+            // if (!(email && password && first_name && last_name)) {
+            //     res.status(400).send('all input in  required ');
+            // }
 
-        const oldUser = await User.findOne({ email });
+            const oldUser = await User.findOne({ email });
 
-        if (oldUser) {
-            return res.status(409).send('user is already exist. please login ')
-        }
-
-        const bcryptpass = await bcrypt.hash(password, 10)
-
-        const user = await User.create(
-            {
-                first_name,
-                last_name,
-                email: email.toLowerCase(),
-                password: bcryptpass,
+            if (oldUser) {
+                return res.status(409).send('user is already exist. please login ')
             }
-        );
-        console.log(user);
+
+            const bcryptpass = await bcrypt.hash(password, 10)
+
+            const user = await User.create(
+                {
+                    first_name,
+                    last_name,
+                    email: email.toLowerCase(),
+                    password: bcryptpass,
+                }
+            );
+            console.log(user);
 
 
-        const token = jwt.sign(
-            { user_id: user._id, email },
-            process.env.TOKEN_KEY,
-            {
-                expiresIn: '1h'
-            }
-        )
+            const token = jwt.sign(
+                { user_id: user._id, email },
+                process.env.TOKEN_KEY,
+                {
+                    expiresIn: '1h'
+                }
+            )
 
-        user.token = token;
+            user.token = token;
 
-        res.status(201).json(user);
-
+            res.status(201).json(user);
+        } 
     } catch (error) {
         console.log(error.message);
     }
@@ -105,37 +120,37 @@ app.get('/home', auth, (req, res) => {
 app.post('/addproducts', auth, async (req, res) => {
 
     try {
-        const { product_name, product_price, product_type, product_image, porduct_detail, quantity } = req.body;
+        // console.log(req.user);
+        const { product_name, product_price, product_type, product_detail, } = req.body;
+
         const retailer = req.user.user_id
         const { error } = validate(req.body);
-        if(error)
-        {
+        if (error) {
 
             res.status(500).send(error.details[0].message)
-        } 
-        else
-        {
+        }
+        else {
 
-        
-        console.log(req.user.user_id);
 
-        // if (!(product_image && product_name && product_price && product_type && porduct_detail)) {
-        //     res.status(400).send('all input in  required ');
-        // }
+            console.log(req.user.user_id);
 
-       
-        const updateproduct = await Product.findOneAndUpdate({ product_name: product_name }, {
-            $set:
-                { product_name, product_price, product_image, product_type, porduct_detail, retailer },
-            $inc: { quantity: 1 }
-        }, { new: true, upsert: true }, (err, data) => {
-            if (!err) {
-                res.status(201).send(`now you have ${data.quantity} ${data.product_name}`)
-            }
-            // res.status(401).send(err.message)
-        })
-        res.status(201).send('Product Add Successfully')
-        return updateproduct;
+            // if (!(product_image && product_name && product_price && product_type && porduct_detail)) {
+            //     res.status(400).send('all input in  required ');
+            // }
+
+
+            const updateproduct = await Product.findOneAndUpdate({ product_name: product_name }, {
+                $set:
+                    { product_name, product_price, product_type, product_detail, retailer },
+                $inc: { quantity: 1 }
+            }, { new: true, upsert: true }, (err, data) => {
+                if (!err) {
+                    res.status(201).send(`now you have ${data.quantity} ${data.product_name}`)
+                }
+                // res.status(401).send(err.message)
+            })
+            res.status(201).send('Product Add Successfully')
+            return updateproduct;
         }
 
     } catch (error) {
@@ -143,6 +158,19 @@ app.post('/addproducts', auth, async (req, res) => {
     }
 
 });
+
+// app.post('/addproductimage', auth, image.single('image'), async(req,res)=>
+// {
+//     try {
+
+//         const product_image = req.file.buffer
+//         await Product.bulkSave()
+
+
+//     } catch (error) {
+//         console.log(error.message);
+//     }
+// })
 
 app.get('/getproducts', auth, async (req, res) => {
 
