@@ -1,17 +1,18 @@
 import { Request, Response } from "express";
 import { Product } from '../models/Product';
-// import { Validate } from 'typescript-class-validator'
+import multer from "multer";
 
+const filestorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, './images')
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + '--' + file.originalname)
+    }
 
-// interface IGetUserAuthInfoRequest extends Request {
-//     user: string // or any other type
-//   }
+})
 
-// export const check  = async (req:IGetUserAuthInfoRequest,res:Response)=>
-// {
-//     console.log(req.user);
-
-// }
+export const upload = multer({ storage: filestorage })
 
 
 class product {
@@ -27,6 +28,8 @@ class product {
 
         try {
 
+            console.log(req.body);
+            
             const retailer = req.user.user_id
             const product_image = req.file;
             const { product_name, product_price, product_type, product_detail, } = req.body;
@@ -49,16 +52,14 @@ class product {
                 {
                     new: true,
                     upsert: true,
-                }, (err: any, data: any) => {
-                    if (!err) res.status(201).send(`quantity addes ${data}`)
-                }
+                },
             )
-            // res.status(201).send('Product Add Successfully')
+            res.status(201).send('Product Add Successfully')
             return updateproduct;
 
         } catch (error: any) {
             console.log("=================");
-
+            res.status(400).send(error.message);
             console.log('something is wrong', error.message);
 
         }

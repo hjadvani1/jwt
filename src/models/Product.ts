@@ -1,6 +1,7 @@
+// import { string } from "joi";
 import { Schema, model } from "mongoose";
 import { Iproduct } from "../interface/product";
-import Joi, { object } from "joi";
+// import Joi, { object, string } from "joi";
 
 const productSchema = new Schema({
     product_name: {
@@ -16,8 +17,8 @@ const productSchema = new Schema({
         default: null,
     },
     product_image: {
-        type: Object,
-        default: null,
+        type: String,
+        // contentType:String,
     },
     product_detail: {
         type: String,

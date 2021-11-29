@@ -8,7 +8,16 @@ import bodyParser from 'body-parser';
 const app: Application = express();
 
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json())
+app.use(bodyParser.json());
+app.use(bodyParser());
+
+
+app.all('/*', function(req, res, next) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,accept,access_token,X-Requested-With');
+    next();
+});
+
 app.use(router);
 
 dotenv.config();

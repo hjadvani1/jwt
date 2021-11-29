@@ -5,9 +5,6 @@ import { IPayload } from "../interface/payload";
 
 
 const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
-    
-    // res.header('Access-Control-Allow-Origin', '*');
-    // res.header('Access-Control-Allow-Headers', 'x-www-form-urlencoded, Origin, X-Requested-With, Content-Type, Accept, Authorization, *')
 
     const token = req.header('x-auth-token');
 
