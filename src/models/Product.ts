@@ -1,9 +1,11 @@
 // import { string } from "joi";
+import { object } from "joi";
 import { Schema, model } from "mongoose";
 import { Iproduct } from "../interface/product";
 // import Joi, { object, string } from "joi";
 
 const productSchema = new Schema({
+    _id: Schema.Types.ObjectId,
     product_name: {
         type: String,
         default: null,
